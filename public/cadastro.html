@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadastrar Exame - Análise de Saúde Animal</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background: #f4f6f8;
+        min-height: 100vh;
+      }
+      .sidebar {
+        min-height: 100vh;
+        background: #fff;
+        border-right: 1px solid #e3e6ea;
+        padding-top: 1rem;
+      }
+      .sidebar .nav-link.active {
+        background: #e3f2fd;
+        color: #1976d2 !important;
+        font-weight: 600;
+      }
+      .content-area {
+        padding: 2rem;
+      }
+      .navbar-brand {
+        font-weight: 700;
+        color: #1976d2 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Análise de Saúde Animal</a>
+        <div class="d-flex">
+          <button id="btn-logout" class="btn btn-outline-danger">Logout</button>
+        </div>
+      </div>
+    </nav>
+    <div class="container-fluid">
+      <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-2 d-none d-md-block sidebar">
+          <div class="position-sticky">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link" href="exame.html">
+                  <span class="me-2">&#128202;</span> Exames
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" href="cadastro.html">
+                  <span class="me-2">&#10133;</span> Cadastrar Exame
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="usuarios.html">
+                  <span class="me-2">&#128100;</span> Usuários
+                </a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <!-- Main content -->
+        <main class="col-md-10 ms-sm-auto col-lg-10 px-md-4 content-area">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Cadastrar Exame</h2>
+            <div>
+              <a href="exame.html" class="btn btn-secondary me-2">Voltar</a>
+              <a href="usuarios.html" class="btn btn-info"
+                >Cadastrar Usuários</a
+              >
+            </div>
+          </div>
+          <!-- Formulário de cadastro de exame -->
+          <form
+            id="form-cadastro"
+            class="bg-white p-4 rounded shadow-sm"
+            style="max-width: 600px"
+          >
+            <div class="mb-3">
+              <label for="nome-tutor" class="form-label">Nome do Tutor</label>
+              <input
+                type="text"
+                class="form-control"
+                id="nome-tutor"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label for="nome-pet" class="form-label">Nome do Pet</label>
+              <input type="text" class="form-control" id="nome-pet" required />
+            </div>
+            <div class="mb-3">
+              <label for="anexo" class="form-label">Anexar Documentos</label>
+              <input type="file" class="form-control" id="anexo" multiple />
+            </div>
+            <button type="submit" class="btn btn-primary">Salvar Exame</button>
+            <div id="cadastro-msg" class="mt-3"></div>
+          </form>
+        </main>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="./firebaseConfig.js"></script>
+    <script>
+      document
+        .getElementById("btn-logout")
+        .addEventListener("click", function () {
+          firebase
+            .auth()
+            .signOut()
+            .then(() => {
+              window.location.href = "index.html";
+            });
+        });
+
+      document
+        .getElementById("form-cadastro")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const nomeTutor = document.getElementById("nome-tutor").value;
+          const nomePet = document.getElementById("nome-pet").value;
+          const arquivoInput = document.getElementById("anexo");
+          const msg = document.getElementById("cadastro-msg");
+
+          msg.innerHTML = "";
+
+          const formData = new FormData();
+          formData.append("name", nomeTutor);
+          formData.append("id", nomePet);
+          for (let i = 0; i < arquivoInput.files.length; i++) {
+            formData.append("files", arquivoInput.files[i]);
+          }
+
+          try {
+            const response = await fetch("http://localhost:5000/upload", {
+              method: "POST",
+              body: formData,
+            });
+            const data = await response.json();
+            if (response.ok) {
+              window.location.href = "exame.html";
+            } else {
+              msg.innerHTML =
+                '<div class="alert alert-danger">' +
+                (data.error || "Erro ao cadastrar exame.") +
+                "</div>";
+            }
+          } catch (error) {
+            console.error("Erro ao cadastrar exame:", error);
+            msg.innerHTML =
+              '<div class="alert alert-danger">Erro ao cadastrar exame.</div>';
+          }
+        });
+    </script>
+  </body>
+</html>
